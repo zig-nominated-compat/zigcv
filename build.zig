@@ -116,7 +116,7 @@ const Program = struct {
 };
 
 inline fn link(b: *std.Build, target: std.Build.ResolvedTarget, exe: anytype, isModule: bool) void {
-    const go_src = "libs/gocv/";
+    const dep_gocv = b.dependency("gocv", .{});
     const zig_src = "src/";
 
     switch (target.result.os.tag) {
@@ -139,10 +139,10 @@ inline fn link(b: *std.Build, target: std.Build.ResolvedTarget, exe: anytype, is
     if (isModule) exe.linkSystemLibrary("m", .{}) else exe.linkSystemLibrary("unwind");
     if (isModule) exe.linkSystemLibrary("c", .{}) else exe.linkSystemLibrary("unwind");
 
-    exe.addIncludePath(b.path(go_src));
+    exe.addIncludePath(dep_gocv.path(""));
     if (!isModule) exe.addCSourceFiles(.{
         .files = &.{ "asyncarray.cpp", "calib3d.cpp", "core.cpp", "dnn.cpp", "features2d.cpp", "highgui.cpp", "imgcodecs.cpp", "imgproc.cpp", "objdetect.cpp", "photo.cpp", "svd.cpp", "version.cpp", "video.cpp", "videoio.cpp" },
-        .root = b.path(go_src),
+        .root = dep_gocv.path(""),
     });
 
     exe.addIncludePath(b.path(zig_src));

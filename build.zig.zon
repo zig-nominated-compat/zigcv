@@ -2,13 +2,15 @@
     .name = "zigcv",
     .version = "0.0.0",
     .minimum_zig_version = "0.13.0",
-    .dependencies = .{},
+    .dependencies = .{
+        .gocv = .{
+            .url = "https://github.com/ryoppippi/gocv/archive/7ebddf09e110ed30f0b219f8c55fbb07fdefdc85.tar.gz",
+            .hash = "122004bde0b0b0df245b123bf0e4c3418221220c39613b7cd7d9ea915cd7850c79fb",
+        },
+    },
     .paths = .{
         "build.zig",
         "build.zig.zon",
         "src",
-        // For example...
-        //"LICENSE",
-        //"README.md",
     },
 }
