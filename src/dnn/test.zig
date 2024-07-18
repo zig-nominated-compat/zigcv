@@ -69,7 +69,7 @@ fn checkNet(net: *Net, allocator: std.mem.Allocator) !void {
 
     try testing.expectEqual(@as(usize, 142), lnames.items.len);
 
-    var err_happend = false;
+    const err_happend = false;
     try testing.expectEqualStrings("conv1/relu_7x7", lnames.items[1]);
     var cs = [_][]const u8{"prob"};
     var prob = try net.forwardLayers(&cs, allocator);
@@ -114,7 +114,7 @@ test "dnn read net from memory" {
     var model_file = try std.fs.cwd().openFile(caffe_model_file, .{});
     const m_stat = try std.fs.cwd().statFile(caffe_model_file);
     defer model_file.close();
-    var model = try model_file.reader().readAllAlloc(
+    const model = try model_file.reader().readAllAlloc(
         test_allocator,
         m_stat.size,
     );
@@ -123,7 +123,7 @@ test "dnn read net from memory" {
     var config_file = try std.fs.cwd().openFile(caffe_prototext_file, .{});
     const c_stat = try std.fs.cwd().statFile(caffe_prototext_file);
     defer config_file.close();
-    var config = try config_file.reader().readAllAlloc(
+    const config = try config_file.reader().readAllAlloc(
         test_allocator,
         c_stat.size,
     );
@@ -187,7 +187,7 @@ test "dnn read caffe memory" {
     var model_file = try std.fs.cwd().openFile(caffe_model_file, .{});
     const m_stat = try std.fs.cwd().statFile(caffe_model_file);
     defer model_file.close();
-    var model = try model_file.reader().readAllAlloc(
+    const model = try model_file.reader().readAllAlloc(
         test_allocator,
         m_stat.size,
     );
@@ -196,7 +196,7 @@ test "dnn read caffe memory" {
     var config_file = try std.fs.cwd().openFile(caffe_prototext_file, .{});
     const c_stat = try std.fs.cwd().statFile(caffe_prototext_file);
     defer config_file.close();
-    var config = try config_file.reader().readAllAlloc(
+    const config = try config_file.reader().readAllAlloc(
         test_allocator,
         c_stat.size,
     );
@@ -246,20 +246,10 @@ fn downloadTFModel() !void {
     const arena_allocator = arena.allocator();
     _ = std.fs.cwd().statFile(tensorflow_model_file) catch |err| {
         if (err != error.FileNotFound) unreachable;
-        var child = std.ChildProcess.init(
-            &.{
-                "unzip",
-                "-o",
-                tensorflow_model_zip_file,
-                tensorflow_model_filename,
-                "-d",
-                cache_dir,
-            },
-            arena_allocator,
-        );
-        child.stderr = std.io.getStdErr();
-        child.stdout = std.io.getStdOut();
-        _ = try child.spawnAndWait();
+        _ = try std.process.Child.run(.{
+            .allocator = arena_allocator,
+            .argv = &.{ "unzip", "-o", tensorflow_model_zip_file, tensorflow_model_filename, "-d", cache_dir },
+        });
     };
 }
 
@@ -276,7 +266,7 @@ test "dnn read tensorflow memory" {
     var model_file = try std.fs.cwd().openFile(tensorflow_model_file, .{});
     const m_stat = try std.fs.cwd().statFile(tensorflow_model_file);
     defer model_file.close();
-    var model = try model_file.reader().readAllAlloc(
+    const model = try model_file.reader().readAllAlloc(
         test_allocator,
         m_stat.size,
     );
@@ -334,7 +324,7 @@ test "dnn read onnx memory" {
     var model_file = try std.fs.cwd().openFile(onnx_model_file, .{});
     const m_stat = try std.fs.cwd().statFile(onnx_model_file);
     defer model_file.close();
-    var model = try model_file.reader().readAllAlloc(
+    const model = try model_file.reader().readAllAlloc(
         test_allocator,
         m_stat.size,
     );
@@ -399,7 +389,7 @@ test "dnn blob initFromImage Size" {
     );
     defer blob.deinit();
 
-    var sz = (try blob.getSize()).toArray();
+    const sz = (try blob.getSize()).toArray();
 
     try testing.expectEqual(@as(f64, 1), sz[0]);
     try testing.expectEqual(@as(f64, 3), sz[1]);
@@ -429,7 +419,7 @@ test "dnn blob initFromImages" {
     );
     defer blob.deinit();
 
-    var sz = (try blob.getSize()).toArray();
+    const sz = (try blob.getSize()).toArray();
     try testing.expectEqual(@as(f64, 2), sz[0]);
     try testing.expectEqual(@as(f64, 3), sz[1]);
     try testing.expectEqual(@as(f64, 25), sz[2]);
@@ -481,14 +471,14 @@ test "dnn nmsboxes" {
 
     img.convertTo(&img, .cv32fc1);
 
-    comptime var bboxes = [_]Rect{
+    var bboxes = [_]Rect{
         Rect.init(53, 47, 589 - 53, 451 - 47),
         Rect.init(118, 54, 618 - 118, 450 - 54),
         Rect.init(53, 66, 605 - 53, 480 - 66),
         Rect.init(111, 65, 630 - 111, 480 - 65),
         Rect.init(156, 51, 640 - 156, 480 - 51),
     };
-    comptime var scores = [_]f32{ 0.82094115, 0.7998236, 0.9809663, 0.99717456, 0.89628726 };
+    var scores = [_]f32{ 0.82094115, 0.7998236, 0.9809663, 0.99717456, 0.89628726 };
     const score_threshold: f32 = 0.5;
     const nms_threshold: f32 = 0.4;
     const max_index: usize = 1;
@@ -513,14 +503,14 @@ test "dnn nmsboxesWithParams" {
 
     img.convertTo(&img, .cv32fc1);
 
-    comptime var bboxes = [_]Rect{
+    var bboxes = [_]Rect{
         Rect.init(53, 47, 589 - 53, 451 - 47),
         Rect.init(118, 54, 618 - 118, 450 - 54),
         Rect.init(53, 66, 605 - 53, 480 - 66),
         Rect.init(111, 65, 630 - 111, 480 - 65),
         Rect.init(156, 51, 640 - 156, 480 - 51),
     };
-    comptime var scores = [_]f32{ 0.82094115, 0.7998236, 0.9809663, 0.99717456, 0.89628726 };
+    var scores = [_]f32{ 0.82094115, 0.7998236, 0.9809663, 0.99717456, 0.89628726 };
     const score_threshold: f32 = 0.5;
     const nms_threshold: f32 = 0.4;
     const max_index: usize = 1;

@@ -1,9 +1,24 @@
 const std = @import("std");
-const LazyPath = std.build.LazyPath;
-const zigcv = @import("libs.zig");
-pub fn build(b: *std.build.Builder) void {
+
+pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
-    const mode = b.standardOptimizeOption(.{});
+    const optimize = b.standardOptimizeOption(.{});
+
+    const lib = b.addStaticLibrary(.{
+        .name = "opencv",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    link(b, target, lib, false);
+
+    const zigcv = b.addModule("zigcv", .{
+        .root_source_file = b.path("src/main.zig"),
+        .optimize = optimize,
+        .target = target,
+    });
+
+    link(b, target, zigcv, true);
 
     const examples = [_]Program{
         .{
@@ -48,32 +63,33 @@ pub fn build(b: *std.build.Builder) void {
         },
     };
 
-    const examples_step = b.step("examples", "Builds all the examples");
+    const examples_step = b.step("examples", "Run all the examples");
 
     for (examples) |ex| {
         const exe = b.addExecutable(.{
             .name = ex.name,
-            .root_source_file = .{ .path = ex.path },
+            .root_source_file = b.path(ex.path),
             .target = target,
-            .optimize = mode,
+            .optimize = optimize,
         });
-        const exe_step = &exe.step;
+
+        link(b, target, exe, false);
+
+        exe.root_module.addImport("zigcv", zigcv);
 
         b.installArtifact(exe);
 
-        zigcv.link(b, exe);
-        zigcv.addAsPackage(exe);
-
         const run_cmd = b.addRunArtifact(exe);
-        const run_step = b.step(ex.name, ex.desc);
-        const artifact_step = &b.addInstallArtifact(exe, .{}).step;
+        run_cmd.step.dependOn(b.getInstallStep());
+
         if (b.args) |args| {
             run_cmd.addArgs(args);
         }
-        run_step.dependOn(artifact_step);
+
+        var run_step = b.step(ex.name, ex.desc);
         run_step.dependOn(&run_cmd.step);
-        examples_step.dependOn(exe_step);
-        examples_step.dependOn(artifact_step);
+
+        examples_step.dependOn(run_step);
     }
 
     var tmp_dir = std.testing.tmpDir(.{});
@@ -81,27 +97,15 @@ pub fn build(b: *std.build.Builder) void {
 
     const test_filter = b.option([]const u8, "test-filter", "Skip tests that do not match filter") orelse null;
     const unit_tests = b.addTest(.{
-        .root_source_file = .{ .path = "src/main.zig" },
+        .root_source_file = b.path("src/main.zig"),
         .target = target,
-        .optimize = mode,
+        .optimize = optimize,
         .filter = test_filter,
     });
-    zigcv.link(b, unit_tests);
-    zigcv.addAsPackage(unit_tests);
-
-    const run_unit_tests = b.addRunArtifact(unit_tests);
-
+    link(b, target, unit_tests, false);
+    unit_tests.root_module.addImport("zigcv", &lib.root_module);
     const test_step = b.step("test", "Run unit tests");
-    test_step.dependOn(&run_unit_tests.step);
-
-    // const emit_docs = b.option(bool, "docs", "Generate Docs");
-    // if (emit_docs) |d| {
-    //     if (d) exe_tests.emit_docs = .emit;
-    // }
-}
-
-inline fn thisDir() []const u8 {
-    return comptime std.fs.path.dirname(@src().file) orelse ".";
+    test_step.dependOn(&unit_tests.step);
 }
 
 const Program = struct {
@@ -110,3 +114,36 @@ const Program = struct {
     desc: []const u8,
     fstage1: bool = false,
 };
+
+inline fn link(b: *std.Build, target: std.Build.ResolvedTarget, exe: anytype, isModule: bool) void {
+    const go_src = "libs/gocv/";
+    const zig_src = "src/";
+
+    switch (target.result.os.tag) {
+        .windows => {
+            exe.addIncludePath(b.path("c:/msys64/mingw64/include"));
+            exe.addIncludePath(b.path("c:/msys64/mingw64/include/c++/12.2.0"));
+            exe.addIncludePath(b.path("c:/msys64/mingw64/include/c++/12.2.0/x86_64-w64-mingw32"));
+            exe.addLibraryPath(b.path("c:/msys64/mingw64/lib"));
+            exe.addIncludePath(b.path("c:/opencv/build/install/include"));
+            exe.addLibraryPath(b.path("c:/opencv/build/install/x64/mingw/staticlib"));
+
+            if (isModule) exe.linkSystemLibrary("stdc++.dll", .{}) else exe.linkSystemLibrary("stdc++.dll");
+        },
+        else => {
+            if (!isModule) exe.linkLibCpp();
+        },
+    }
+    if (isModule) exe.linkSystemLibrary("opencv4", .{}) else exe.linkSystemLibrary("opencv4");
+    if (isModule) exe.linkSystemLibrary("unwind", .{}) else exe.linkSystemLibrary("unwind");
+    if (isModule) exe.linkSystemLibrary("m", .{}) else exe.linkSystemLibrary("unwind");
+    if (isModule) exe.linkSystemLibrary("c", .{}) else exe.linkSystemLibrary("unwind");
+
+    exe.addIncludePath(b.path(go_src));
+    if (!isModule) exe.addCSourceFiles(.{
+        .files = &.{ "asyncarray.cpp", "calib3d.cpp", "core.cpp", "dnn.cpp", "features2d.cpp", "highgui.cpp", "imgcodecs.cpp", "imgproc.cpp", "objdetect.cpp", "photo.cpp", "svd.cpp", "version.cpp", "video.cpp", "videoio.cpp" },
+        .root = b.path(go_src),
+    });
+
+    exe.addIncludePath(b.path(zig_src));
+}
