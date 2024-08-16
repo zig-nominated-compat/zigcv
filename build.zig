@@ -17,4 +17,13 @@ pub fn build(b: *std.Build) void {
         .root = dep_gocv.path(""),
     });
     zigcv_module.addIncludePath(dep_gocv.path(""));
+
+    const lib = b.addStaticLibrary(.{
+        .name = "zigcv",
+        .root_source_file = b.path("src/main.zig"),
+        .optimize = optimize,
+        .target = target,
+    });
+    lib.addIncludePath(dep_gocv.path(""));
+    b.installArtifact(lib);
 }

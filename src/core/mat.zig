@@ -1275,7 +1275,7 @@ pub fn dataPtr(self: Self, comptime T: type) ![]T {
 pub fn toBytes(self: Self) []u8 {
     var p: c.struct_ByteArray = c.Mat_ToBytes(self.ptr);
     const len = @as(usize, @intCast(p.length));
-    return p[0..len];
+    return p.data[0..len];
 }
 
 // Reshape changes the shape and/or the number of channels of a 2D matrix without copying the data.
