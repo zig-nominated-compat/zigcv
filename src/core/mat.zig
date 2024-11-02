@@ -1274,6 +1274,8 @@ pub fn dataPtr(self: Self, comptime T: type) ![]T {
 
 pub fn toBytes(self: Self) []u8 {
     var p: c.struct_ByteArray = c.Mat_ToBytes(self.ptr);
+    defer c.free(p.data);
+
     const len = @as(usize, @intCast(p.length));
     return p.data[0..len];
 }
