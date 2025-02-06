@@ -671,7 +671,7 @@ pub fn sqrt(self: Self) !Self {
 // https://docs.opencv.org/master/d2/de8/group__core__array.html#ga191389f8a0e58180bb13a727782cd461
 //
 pub fn mean(self: Self) Scalar {
-    return Scalar.fromC(c.Mat_Mean(self.ptr));
+    return Scalar.initFromC(c.Mat_Mean(self.ptr));
 }
 
 // ConvertFp16 converts a Mat to half-precision floating point.
