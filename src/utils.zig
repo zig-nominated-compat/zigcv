@@ -10,7 +10,7 @@ pub fn fromCStructsToArrayList(from_array: anytype, from_array_length: i32, comp
             const elem = blk: {
                 const elem = ToType.initFromC(from_array[i]);
                 break :blk switch (comptime @typeInfo(@TypeOf(elem))) {
-                    .ErrorUnion => try elem,
+                    .error_union => try elem,
                     else => elem,
                 };
             };
