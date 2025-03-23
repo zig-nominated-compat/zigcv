@@ -8,7 +8,7 @@
 
 The ZIGCV library provides Zig language bindings for the [OpenCV 4](http://opencv.org/) computer vision library.
 
-This for of the zigcv library supports the nominated of zig and OpenCV (v4.6.0) on Linux and macOS.
+This fork of the zigcv library supports the nominated of zig and OpenCV (v4.6.0) on Linux and macOS. This fork does **NOT** have support for Windows yet due to [Froxcey](https://github.com/Froxcey/) not having access to a Windows machine. Contribution to add Windows support is welcome, but Froxcey does not have any plan to add it himself.
 
 ## Caution
 
@@ -25,11 +25,19 @@ zig fetch --save git+https://github.com/zig-nominated-compat/zigcv.git
 ```
 then add this to your build.zig:
 ```zig
+const zigcv = @import("zigcv");
 const zigcv_dep = b.dependency("zigcv", .{});
-const zigcv_module = zigcv_dep.module("zigcv");
-// Replace exe with whatever Compile you are using
-exe.step.dependOn(zigcv_dep.builder.default_step);
-exe.root_module.addImport("zigcv", zigcv_module);
+if (zigcv.make_step != null) exe.step.dependOn(&zigcv.make_step.?);
+exe.root_module.addImport("zigcv", zigcv_dep.module("zigcv"));
+```
+
+If you build from source (required on Linux), additional packages may be required.
+
+```sh
+# Ubuntu/Debian
+apt install cmake clang python3-numpy libc++-15-dev libc++abi-15-dev pkg-config libopencv-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev
+# macOS
+brew install cmake clang pkg-config ffmpeg openvino gstreamer
 ```
 
 ## Demos
@@ -63,4 +71,5 @@ MIT
 ## Author
 
 Ryotaro "Justin" Kimura (a.k.a. ryoppippi)
+
 Froxcey

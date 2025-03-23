@@ -1,10 +1,12 @@
 const std = @import("std");
 
+pub var make_step: ?std.Build.Step = undefined;
+
 pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
     const bundle_opt = b.option(bool, "bundle", "Bundle OpenCV to your binary (default - MacOS/false Linux/true") orelse if (target.result.os.tag == .linux) true else false;
-    const dnn_opt = b.option(bool, "dnn", "Build with dnn (default - true") orelse true;
+    const dnn_opt = b.option(bool, "dnn", "Build with dnn (default - true)") orelse true;
 
     const zigcv_module = b.addModule("zigcv", .{
         .root_source_file = b.path("src/main.zig"),
@@ -15,6 +17,7 @@ pub fn build(b: *std.Build) !void {
     });
     var zigcv_step = try makeCvModule(b, zigcv_module, target, .{ .dnn = dnn_opt, .bundle = bundle_opt });
     if (zigcv_step != null) b.default_step.dependOn(&zigcv_step.?);
+    make_step = zigcv_step;
 
     const dep_gocv = b.dependency("gocv", .{});
     zigcv_module.addCSourceFiles(.{
@@ -148,8 +151,6 @@ fn makeCv(b: *std.Build, module: *std.Build.Module, target: std.Build.ResolvedTa
         "-D",
         "CMAKE_EXE_LINKER_FLAGS=-std=c++11 -stdlib=libc++",
         "-D",
-        "WITH_IPP=OFF",
-        "-D",
         "CMAKE_C_COMPILER=clang",
         "-D",
         "CMAKE_CXX_COMPILER=clang++",
@@ -160,7 +161,6 @@ fn makeCv(b: *std.Build, module: *std.Build.Module, target: std.Build.ResolvedTa
     configure_cmd.addArgs(&.{
         "-D",
     });
-
     configure_cmd.addPrefixedDirectoryArg("OPENCV_EXTRA_MODULES_PATH=", opencv_contrib_dep.?.path("modules"));
     if (!options.dnn) {
         configure_cmd.addArgs(&.{ "-D", "OPENCV_DNN_OPENCL=OFF" });
@@ -170,8 +170,8 @@ fn makeCv(b: *std.Build, module: *std.Build.Module, target: std.Build.ResolvedTa
         "OPENCV_ENABLE_NONFREE=ON",
         "-D",
         "WITH_JASPER=OFF",
-        "-D",
-        "WITH_TBB=ON",
+        // "-D",
+        // "WITH_TBB=OFF",
         "-D",
         "BUILD_DOCS=OFF",
         "-D",
@@ -183,8 +183,6 @@ fn makeCv(b: *std.Build, module: *std.Build.Module, target: std.Build.ResolvedTa
         "-D",
         "BUILD_opencv_java=OFF",
         "-D",
-        "BUILD_opencv_python=OFF",
-        "-D",
         "BUILD_opencv_python2=OFF",
         "-D",
         "BUILD_opencv_python3=OFF",
@@ -192,6 +190,26 @@ fn makeCv(b: *std.Build, module: *std.Build.Module, target: std.Build.ResolvedTa
         "WITH_OPENEXR=OFF",
         "-D",
         "BUILD_OPENEXR=OFF",
+        "-D",
+        "BUILD_PNG=ON",
+        "-D",
+        "BUILD_JPEG=ON",
+        "-D",
+        "BUILD_TIFF=ON",
+        "-D",
+        "BUILD_WEBP=ON",
+        "-D",
+        "WITH_FFMPEG=ON",
+        "-D",
+        "WITH_GSTREAMER=OFF",
+        "-D",
+        "WITH_V4L=ON",
+        "-D",
+        "WITH_LIBV4L=ON",
+        "-D",
+        "WITH_OPENGL=ON",
+        "-D",
+        "ENABLE_FAST_MATH=ON",
         "-D",
         "BUILD_SHARED_LIBS=OFF",
         "-D",
@@ -272,8 +290,12 @@ const LinkModuleStep = struct {
 
         if (options.dnn) m.addObjectFile(dir.path(b, "lib/libopencv_dnn.a"));
 
-        inline for (&.{ "ade", "ittnotify", "libjpeg-turbo", "libopenjp2", "libpng", "libprotobuf", "libtiff", "libwebp", "tegra_hal" }) |lib_file| {
+        //
+        inline for (&.{ "ade", "ittnotify", "libopenjp2", "libprotobuf", "tegra_hal", "libjpeg-turbo", "libtiff", "libwebp", "libpng" }) |lib_file| {
             m.addObjectFile(dir.path(b, "lib/opencv4/3rdparty/lib" ++ lib_file ++ ".a"));
+        }
+        inline for (&.{ "avcodec", "avformat", "avutil", "swscale" }) |library_dep| {
+            m.linkSystemLibrary(library_dep, .{});
         }
 
         switch (target.result.os.tag) {
@@ -281,7 +303,7 @@ const LinkModuleStep = struct {
                 inline for (&.{ "alphamat", "freetype", "hdf", "sfm" }) |lib_file| {
                     m.addObjectFile(dir.path(b, "lib/libopencv_" ++ lib_file ++ ".a"));
                 }
-                inline for (&.{ "avcodec", "avformat", "avutil", "swscale", "openvino", "avif", "gstreamer-1.0", "gstreamer-sdp-1.0", "gstreamer-app-1.0", "gstreamer-video-1.0", "gstriff-1.0", "gstpbutils-1.0" }) |library_dep| {
+                inline for (&.{ "openvino", "avif", "gstreamer-1.0", "gstreamer-sdp-1.0", "gstreamer-app-1.0", "gstreamer-video-1.0", "gstriff-1.0", "gstpbutils-1.0" }) |library_dep| {
                     m.linkSystemLibrary(library_dep, .{});
                 }
                 inline for (&.{ "opencv.sfm.correspondence", "opencv.sfm.multiview", "opencv.sfm.numeric", "opencv.sfm.simple_pipeline", "zlib" }) |lib_file| {
