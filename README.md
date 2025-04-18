@@ -8,7 +8,7 @@
 
 The ZIGCV library provides Zig language bindings for the [OpenCV 4](http://opencv.org/) computer vision library.
 
-This fork of the zigcv library supports the nominated of zig and OpenCV (v4.6.0) on Linux and macOS. This fork does **NOT** have support for Windows yet due to [Froxcey](https://github.com/Froxcey/) not having access to a Windows machine. Contribution to add Windows support is welcome, but Froxcey does not have any plan to add it himself.
+This fork of the zigcv library supports the [nominated version of zig](https://machengine.org/docs/nominated-zig) and OpenCV (v4.6.0) on Linux and OSX. This fork does **NOT** have support for Windows yet due to [Froxcey](https://github.com/Froxcey/) not having access to a Windows machine. Contribution to add Windows support is welcome, but Froxcey does not have any plan to add it himself.
 
 ## Caution
 
@@ -35,9 +35,9 @@ If you build from source (required on Linux), additional packages may be require
 
 ```sh
 # Ubuntu/Debian
-apt install cmake clang python3-numpy libc++-15-dev libc++abi-15-dev pkg-config libopencv-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev
+apt install cmake python3-numpy libc++-15-dev libc++abi-15-dev pkg-config libopencv-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev
 # macOS
-brew install cmake clang pkg-config ffmpeg openvino gstreamer
+brew install cmake pkg-config ffmpeg openvino gstreamer
 ```
 
 ## Demos
@@ -47,6 +47,12 @@ For example:
 
 ```sh
 zig build examples
+```
+
+Or you can build a bundled version
+
+```sh
+zig build -Dbundle examples
 ```
 
 Or you can run the demo with the following command:

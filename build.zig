@@ -140,20 +140,14 @@ fn makeCv(b: *std.Build, module: *std.Build.Module, target: std.Build.ResolvedTa
     const configure_cmd = b.addSystemCommand(&.{ cmake_bin, "-B" });
     configure_cmd.setName("Configuring OpenCV build with cmake");
     const build_work_dir = configure_cmd.addOutputDirectoryArg("build_work");
-    configure_cmd.setEnvironmentVariable("CC", "\"zig cc\"");
-    configure_cmd.setEnvironmentVariable("CXX", "\"zig cc\"");
 
     configure_cmd.addArgs(&.{
-        "-D",
-        "CMAKE_BUILD_TYPE=RELEASE",
-        "-D",
-        "CMAKE_CXX_FLAGS=-std=c++11 -stdlib=libc++",
-        "-D",
-        "CMAKE_EXE_LINKER_FLAGS=-std=c++11 -stdlib=libc++",
-        "-D",
-        "CMAKE_C_COMPILER=clang",
-        "-D",
-        "CMAKE_CXX_COMPILER=clang++",
+        "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+        "-DCMAKE_C_COMPILER='zig;cc'",
+        "-DCMAKE_CXX_COMPILER='zig;c++'",
+        "-DCMAKE_ASM_COMPILER='zig;cc'",
+        "-DCMAKE_BUILD_TYPE=RELEASE",
+        "-DCMAKE_EXE_LINKER_FLAGS=-std=c++11",
         "-D",
     });
 
@@ -166,56 +160,36 @@ fn makeCv(b: *std.Build, module: *std.Build.Module, target: std.Build.ResolvedTa
         configure_cmd.addArgs(&.{ "-D", "OPENCV_DNN_OPENCL=OFF" });
     }
     configure_cmd.addArgs(&.{
-        "-D",
-        "OPENCV_ENABLE_NONFREE=ON",
-        "-D",
-        "WITH_JASPER=OFF",
-        // "-D",
-        // "WITH_TBB=OFF",
-        "-D",
-        "BUILD_DOCS=OFF",
-        "-D",
-        "BUILD_EXAMPLES=OFF",
-        "-D",
-        "BUILD_TESTS=OFF",
-        "-D",
-        "BUILD_PERF_TESTS=OFF",
-        "-D",
-        "BUILD_opencv_java=OFF",
-        "-D",
-        "BUILD_opencv_python2=OFF",
-        "-D",
-        "BUILD_opencv_python3=OFF",
-        "-D",
-        "WITH_OPENEXR=OFF",
-        "-D",
-        "BUILD_OPENEXR=OFF",
-        "-D",
-        "BUILD_PNG=ON",
-        "-D",
-        "BUILD_JPEG=ON",
-        "-D",
-        "BUILD_TIFF=ON",
-        "-D",
-        "BUILD_WEBP=ON",
-        "-D",
-        "WITH_FFMPEG=ON",
-        "-D",
-        "WITH_GSTREAMER=OFF",
-        "-D",
-        "WITH_V4L=ON",
-        "-D",
-        "WITH_LIBV4L=ON",
-        "-D",
-        "WITH_OPENGL=ON",
-        "-D",
-        "ENABLE_FAST_MATH=ON",
-        "-D",
-        "BUILD_SHARED_LIBS=OFF",
-        "-D",
-        "OPENCV_GENERATE_PKGCONFIG=OFF",
+        "-DOPENCV_ENABLE_NONFREE=ON",
+        "-DWITH_JASPER=OFF",
+        // "-DWITH_TBB=OFF",
+        "-DBUILD_DOCS=OFF",
+        "-DBUILD_EXAMPLES=OFF",
+        "-DBUILD_TESTS=OFF",
+        "-DBUILD_PERF_TESTS=OFF",
+        "-DBUILD_opencv_java=OFF",
+        "-DBUILD_opencv_python2=OFF",
+        "-DBUILD_opencv_python3=OFF",
+        "-DWITH_OPENEXR=OFF",
+        "-DBUILD_OPENEXR=OFF",
+        "-DBUILD_PNG=ON",
+        "-DBUILD_JPEG=ON",
+        "-DBUILD_TIFF=ON",
+        "-DBUILD_WEBP=ON",
+        "-DWITH_FFMPEG=ON",
+        "-DWITH_GSTREAMER=OFF",
+        "-DWITH_LIBV4L=ON",
+        "-DWITH_OPENGL=ON",
+        "-DENABLE_FAST_MATH=ON",
+        "-DBUILD_SHARED_LIBS=OFF",
+        "-DOPENCV_GENERATE_PKGCONFIG=OFF",
         "-Wno-dev",
     });
+    if (target.result.os.tag == .linux) {
+        configure_cmd.addArgs(&.{
+            "-DWITH_V4L=ON",
+        });
+    }
     configure_cmd.addDirectoryArg(opencv_dep.?.path(""));
     configure_cmd.expectExitCode(0);
 
