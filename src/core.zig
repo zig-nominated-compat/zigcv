@@ -248,6 +248,13 @@ pub const Point2f = struct {
     pub fn toC(self: Self) c.Point2f {
         return .{ .x = self.x, .y = self.y };
     }
+
+    pub fn round(self: Self) Point {
+        return Point{
+            .x = @intFromFloat(self.x),
+            .y = @intFromFloat(self.y),
+        };
+    }
 };
 
 pub const Point2fVector = struct {
@@ -294,8 +301,8 @@ pub const Point2fVector = struct {
         self.ptr = null;
     }
 
-    pub fn at(self: Self, idx: i32) Point {
-        return c.Point2fVector_At(self.ptr, idx);
+    pub fn at(self: Self, idx: i32) Point2f {
+        return Point2f.initFromC(c.Point2fVector_At(self.ptr, idx));
     }
 
     pub fn size(self: Self) i32 {
@@ -363,8 +370,8 @@ pub const Points2fVector = struct {
         self.ptr = null;
     }
 
-    pub fn at(self: Self, idx: i32) Point {
-        return c.Points2fVector_At(self.ptr, idx);
+    pub fn at(self: Self, idx: i32) !Point2fVector {
+        return try Point2fVector.initFromC(c.Points2fVector_At(self.ptr, idx));
     }
 
     pub fn size(self: Self) i32 {
@@ -720,6 +727,13 @@ pub const Rect = struct {
 };
 
 pub const Rects = std.ArrayList(Rect);
+
+pub fn rectsToC(rects: Rects) c.struct_Rects {
+    return c.Rects{
+        .rects = @ptrCast(rects.items),
+        .length = @intCast(rects.items.len),
+    };
+}
 
 pub const RotatedRect = struct {
     pts: c.Points,

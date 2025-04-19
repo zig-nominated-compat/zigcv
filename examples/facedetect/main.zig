@@ -32,7 +32,7 @@ pub fn main() anyerror!void {
     var classifier = try cv.CascadeClassifier.init();
     defer classifier.deinit();
 
-    classifier.load("./libs/gocv/data/haarcascade_frontalface_default.xml") catch {
+    classifier.load("./data/haarcascade_frontalface_default.xml") catch {
         std.debug.print("no xml", .{});
         std.posix.exit(1);
     };

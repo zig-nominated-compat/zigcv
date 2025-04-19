@@ -1,11 +1,12 @@
 pub usingnamespace @cImport({
-    @cInclude("aruco.h");
-    @cInclude("bgsegm.h");
-    @cInclude("face.h");
-    @cInclude("img_hash.h");
-    @cInclude("tracking.h");
-    @cInclude("wechat_qrcode.h");
-    @cInclude("xfeatures2d.h");
-    @cInclude("ximgproc.h");
-    @cInclude("xphoto.h");
+    @cInclude("stddef.h");
+    // @cInclude("contrib/bgsegm.h");
+    // @cInclude("contrib/face.h");
+    @cInclude("contrib/facemarkLBF.h");
+    // @cInclude("contrib/img_hash.h");
+    // @cInclude("contrib/tracking.h");
+    // @cInclude("contrib/wechat_qrcode.h");
+    // @cInclude("contrib/xfeatures2d.h");
+    // @cInclude("contrib/ximgproc.h");
+    // @cInclude("contrib/xphoto.h");
 });

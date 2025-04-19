@@ -21,7 +21,7 @@ pub fn build(b: *std.Build) !void {
 
     const dep_gocv = b.dependency("gocv", .{});
     zigcv_module.addCSourceFiles(.{
-        .files = &.{ "asyncarray.cpp", "calib3d.cpp", "core.cpp", "features2d.cpp", "highgui.cpp", "imgcodecs.cpp", "imgproc.cpp", "objdetect.cpp", "photo.cpp", "svd.cpp", "version.cpp", "video.cpp", "videoio.cpp" },
+        .files = &.{ "asyncarray.cpp", "calib3d.cpp", "core.cpp", "features2d.cpp", "highgui.cpp", "imgcodecs.cpp", "imgproc.cpp", "objdetect.cpp", "photo.cpp", "svd.cpp", "version.cpp", "video.cpp", "videoio.cpp", "contrib/facemarkLBF.cpp" },
         .root = dep_gocv.path(""),
     });
     if (dnn_opt) zigcv_module.addCSourceFiles(.{ .files = &.{"dnn.cpp"}, .root = dep_gocv.path("") });
@@ -53,6 +53,11 @@ pub fn build(b: *std.Build) !void {
             .name = "face_blur",
             .path = "examples/faceblur/main.zig",
             .desc = "Face Detection and Blur Demo",
+        },
+        .{
+            .name = "face_mark",
+            .path = "examples/facemark/main.zig",
+            .desc = "Face Landmarking Demo",
         },
         .{
             .name = "dnn_detection",
@@ -130,10 +135,8 @@ const Program = struct {
 const BuildOpt = struct { bundle: bool, dnn: bool };
 
 fn makeCv(b: *std.Build, module: *std.Build.Module, target: std.Build.ResolvedTarget, options: BuildOpt) !?std.Build.Step {
-    const opencv_contrib_dep = b.lazyDependency("opencv_contrib", .{});
-    const opencv_dep = b.lazyDependency("opencv", .{});
-
-    if (opencv_contrib_dep == null) return null;
+    const opencv_dep = b.dependency("opencv", .{});
+    const opencv_contrib_dep = b.dependency("opencv_contrib", .{});
 
     const cmake_bin = b.findProgram(&.{"cmake"}, &.{}) catch @panic("CMake is required for bundling OpenCV, please install CMake.\nFor more information on why bundling is happening, please see https://github.com/zig-nominated-compat/zigcv/issues/2");
 
@@ -155,7 +158,7 @@ fn makeCv(b: *std.Build, module: *std.Build.Module, target: std.Build.ResolvedTa
     configure_cmd.addArgs(&.{
         "-D",
     });
-    configure_cmd.addPrefixedDirectoryArg("OPENCV_EXTRA_MODULES_PATH=", opencv_contrib_dep.?.path("modules"));
+    configure_cmd.addPrefixedDirectoryArg("OPENCV_EXTRA_MODULES_PATH=", opencv_contrib_dep.path("modules"));
     if (!options.dnn) {
         configure_cmd.addArgs(&.{ "-D", "OPENCV_DNN_OPENCL=OFF" });
     }
@@ -190,7 +193,7 @@ fn makeCv(b: *std.Build, module: *std.Build.Module, target: std.Build.ResolvedTa
             "-DWITH_V4L=ON",
         });
     }
-    configure_cmd.addDirectoryArg(opencv_dep.?.path(""));
+    configure_cmd.addDirectoryArg(opencv_dep.path(""));
     configure_cmd.expectExitCode(0);
 
     const build_cmd = b.addSystemCommand(&.{ cmake_bin, "--build" });

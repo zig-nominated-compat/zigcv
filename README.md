@@ -1,6 +1,4 @@
-# ZIGCV
-
-[![ci](https://github.com/ryoppippi/zigcv/actions/workflows/ci.yml/badge.svg)](https://github.com/ryoppippi/zigcv/actions/workflows/ci.yml)
+# ZigCV
 
 <div align="center">
   <img src="./logo/zigcv.png" width="50%" />
@@ -8,7 +6,7 @@
 
 The ZIGCV library provides Zig language bindings for the [OpenCV 4](http://opencv.org/) computer vision library.
 
-This fork of the zigcv library supports the [nominated version of zig](https://machengine.org/docs/nominated-zig) and OpenCV (v4.6.0) on Linux and OSX. This fork does **NOT** have support for Windows yet due to [Froxcey](https://github.com/Froxcey/) not having access to a Windows machine. Contribution to add Windows support is welcome, but Froxcey does not have any plan to add it himself.
+> This fork of the zigcv library supports the [nominated version of zig](https://machengine.org/docs/nominated-zig) and OpenCV (v4.6.0) on Linux and OSX. This fork does **NOT** have support for Windows yet due to [Froxcey](https://github.com/Froxcey/) not having access to a Windows machine. Contribution to add Windows support is welcome, but Froxcey does not have any plan to add it himself.
 
 ## Caution
 
@@ -19,25 +17,28 @@ This C-API is currently fixed.
 
 ## Installation
 
-Run this following to fetch this zig package:
+1. Install additional build dependencies (required on Linux)
+
+```sh
+# Ubuntu/Debian
+apt install cmake python3-numpy libc++-15-dev libc++abi-15-dev pkg-config libopencv-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev
+# macOS (optional)
+brew install cmake pkg-config ffmpeg openvino gstreamer
+```
+
+2. Run this following to fetch this zig package:
+
 ```sh
 zig fetch --save git+https://github.com/zig-nominated-compat/zigcv.git
 ```
-then add this to your build.zig:
+
+3. Add this to your build.zig:
+
 ```zig
 const zigcv = @import("zigcv");
 const zigcv_dep = b.dependency("zigcv", .{});
 if (zigcv.make_step != null) exe.step.dependOn(&zigcv.make_step.?);
 exe.root_module.addImport("zigcv", zigcv_dep.module("zigcv"));
-```
-
-If you build from source (required on Linux), additional packages may be required.
-
-```sh
-# Ubuntu/Debian
-apt install cmake python3-numpy libc++-15-dev libc++abi-15-dev pkg-config libopencv-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev
-# macOS
-brew install cmake pkg-config ffmpeg openvino gstreamer
 ```
 
 ## Demos

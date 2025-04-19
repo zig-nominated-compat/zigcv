@@ -16,6 +16,8 @@ pub const video = @import("video.zig");
 pub const c_api = @import("c_api.zig");
 pub const utils = @import("utils.zig");
 
+pub usingnamespace @import("contrib/main.zig");
+
 pub usingnamespace asyncarray;
 pub usingnamespace core;
 pub usingnamespace calib3d;

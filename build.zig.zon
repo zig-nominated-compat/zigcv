@@ -3,25 +3,23 @@
     .version = "0.0.0",
     .minimum_zig_version = "0.13.0",
     .dependencies = .{
-        .gocv = .{
-            .url = "https://github.com/ryoppippi/gocv/archive/7ebddf09e110ed30f0b219f8c55fbb07fdefdc85.tar.gz",
-            .hash = "122004bde0b0b0df245b123bf0e4c3418221220c39613b7cd7d9ea915cd7850c79fb",
-        },
         .opencv_contrib = .{
             .url = "https://github.com/opencv/opencv_contrib/archive/refs/tags/4.11.0.tar.gz",
             .hash = "1220bb9a6f65ce5f0f9b576ca028579231ab333509c9c6d9b865492e54abcfe8c460",
-            .lazy = true,
         },
         .opencv = .{
             .url = "https://github.com/opencv/opencv/archive/refs/tags/4.11.0.tar.gz",
             .hash = "12207792999c156b9b817e45f0a731b53ece55e5eea20158bc64976b9642ea25f459",
-            .lazy = true,
         },
         // .opencv = .{
         //     .path = "../opencv",
         //     // .url = "git+https://github.com/zig-nominated-compat/opencv.git#912365a5c833b70370dd91b8cc2c3f972a36b46c",
         //     // .hash = "12207000537214fc301c7357a94c1d0055da7945a7ba52c1dccf6f0b07037bdda34f",
         // },
+        .gocv = .{
+            .url = "git+https://github.com/Froxcey/gocv.git#85bfa19544981aafa519bc7b3f6010544b250bec",
+            .hash = "12201422db154620ca508f5b317a4ca4fc50eb214176a9b17a7f997ba8a8fc7692c5",
+        },
     },
     .paths = .{
         "build.zig",
