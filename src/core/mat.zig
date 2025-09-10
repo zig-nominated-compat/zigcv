@@ -412,8 +412,8 @@ pub fn initFromScalar(s: Scalar) !Self {
 }
 
 pub fn initFromBytes(rows_: i32, cols_: i32, bytes: []u8, mt: MatType) !Self {
-    const c_bytes = c.ByteVector{
-        .val = @as([*]u8, @ptrCast(bytes)),
+    const c_bytes = c.ByteArray{
+        .data = @as([*]u8, @ptrCast(bytes)),
         .length = @as(i32, @intCast(bytes.len)),
     };
     const ptr = c.Mat_NewFromBytes(rows_, cols_, @intFromEnum(mt), c_bytes);
